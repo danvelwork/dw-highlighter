@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article Highlighter Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .input-container {
+            width: 90%;
+            margin: 0 auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            min-height: 200px;
+            font-size: 1em;
+            background-color: #f9f9f9;
+            text-align: left;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 10px 0;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        .highlight-phrase {
+            background-color: yellow;
+            font-weight: bold;
+        }
+
+        .highlight-link-space {
+            background-color: orange;
+            font-weight: bold;
+        }
+
+        .output-container {
+            text-align: left;
+            width: 90%;
+            margin: 20px auto;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Article Highlighter Tool</h1>
+    <div id="articleText" class="input-container" contenteditable="true" placeholder="Paste your article text here...">
+    </div>
+    <button onclick="highlightText()">Highlight Issues</button>
+    <div id="output" class="output-container"></div>
+
+    <script>
+        // List of GPT-like phrases to be highlighted with variations
+        const blacklist = [
+            "robust", "significant", "landscape", "enhance", "optimize", "synergy",
+            "holistic", "leverage", "streamline", "scalable", "transform", "revolution",
+            "cutting[- ]?edge", "paradigm", "integrate", "seamless", "innovate", "tailor",
+            "empower", "driven", "unprecedented", "solution", "groundbreaking", "empirical",
+            "utilize", "comprehensive", "sophisticated", "dynamic", "impactful", "resilient",
+            "next[- ]?generation", "collaborate", "extensive", "future[- ]?proof", "benchmark",
+            "optimize", "redefine", "immersive", "proactive", "thought[- ]?leadership",
+            "big[- ]?picture", "best[- ]?practices", "forward[- ]?thinking", "end[- ]?to[- ]?end",
+            "insight", "strategic", "disruptive", "transform", "value[- ]?added"
+        ];
+
+        function highlightText() {
+            const articleDiv = document.getElementById("articleText");
+            let htmlContent = articleDiv.innerHTML;
+
+            // Highlight blacklist phrases with variations
+            blacklist.forEach(phrase => {
+                const regex = new RegExp(`\\b${phrase}(ing|ed|s|es|)?\\b`, "gi");
+                htmlContent = htmlContent.replace(regex, match => `<span class="highlight-phrase">${match}</span>`);
+            });
+
+            // Create a temporary container to parse and manipulate HTML content
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = htmlContent;
+
+            // Find all <a> tags and check for spaces around the anchor text
+            const links = tempDiv.querySelectorAll("a");
+            links.forEach(link => {
+                const anchorText = link.textContent;
+                
+                // Check for leading or trailing spaces in anchor text
+                if (anchorText !== anchorText.trim()) {
+                    link.outerHTML = `<span class="highlight-link-space">${link.outerHTML}</span>`;
+                }
+            });
+
+            // Display the highlighted output
+            document.getElementById("output").innerHTML = tempDiv.innerHTML;
+        }
+    </script>
+</body>
+</html>
