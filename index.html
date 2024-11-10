@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Article Highlighter Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .input-container, .url-container {
+            width: 90%;
+            margin: 20px auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            background-color: #f9f9f9;
+            text-align: left;
+        }
+
+        .highlight-phrase {
+            background-color: yellow;
+            font-weight: bold;
+        }
+
+        .highlight-link-space {
+            background-color: orange;
+            font-weight: bold;
+        }
+
+        .output-container {
+            text-align: left;
+            width: 90%;
+            margin: 20px auto;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+
+        .input-header {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* Sticky button container */
+        .button-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <h1>Article Highlighter Tool</h1>
+
+    <!-- URL Input for fetching article content -->
+    <div class="url-container">
+        <input type="text" id="urlInput" placeholder="Paste article URL here..." style="width: 100%; padding: 8px;">
+        <button onclick="fetchArticleContent()">Fetch Article Content</button>
+    </div>
+
+    <!-- Header for the editable input box -->
+    <div class="input-header">Editable Article Text (Paste or Edit Here)</div>
+
+    <!-- Editable Div for pasting text -->
+    <div id="articleText" class="input-container" contenteditable="true" placeholder="Paste your article text here...">
+    </div>
+
+    <!-- Output Div for highlighted content -->
+    <div id="output" class="output-container"></div>
+    
+    <!-- Sticky Button Container -->
+    <div class="button-container">
+        <button onclick="highlightText()">Highlight Issues</button>
+        <button onclick="clearText()">Clear Input & Output</button>
+    </div>
+
+    <script>
+        const blacklist = [
+            "robust", "significant", "landscape", "enhance", "optimize", "synergy",
+            "holistic", "leverage", "streamline", "scalable", "transform", "revolution",
+            "cutting[- ]?edge", "paradigm", "integrate", "seamless", "innovate", "tailor",
+            "empower", "driven", "unprecedented", "solution", "groundbreaking", "empirical",
+            "utilize", "comprehensive", "sophisticated", "dynamic", "impactful", "resilient",
+            "next[- ]?generation", "collaborate", "extensive", "future[- ]?proof", "benchmark",
+            "optimize", "redefine", "immersive", "proactive", "thought[- ]?leadership",
+            "big[- ]?picture", "best[- ]?practices", "forward[- ]?thinking", "end[- ]?to[- ]?end",
+            "insight", "strategic", "disruptive", "transform", "value[- ]?added",
+            "agile", "best[- ]?in[- ]?class", "blue[- ]?sky", "brand[- ]?new", "catalyze", 
+            "circular", "convergence", "core[- ]?competency", "cross[- ]?functional", 
+            "customer[- ]?centric", "deep[- ]?dive", "disrupt", "ecosystem", "elevate", 
+            "end[- ]?user", "engagement", "facilitate", "frictionless", "game[- ]?changer", 
+            "go[- ]?to[- ]?market", "granular", "harmonize", "hyperlocal", "impactful", 
+            "inclusive", "incremental", "integrated", "low[- ]?hanging[- ]?fruit", 
+            "mission[- ]?critical", "monetize", "next[- ]?level", "optimize", "out[- ]?of[- ]?the[- ]?box", 
+            "overarching", "pain[- ]?points", "paradigm[- ]?shift", "personalize", 
+            "predictive", "proliferation", "real[- ]?time", "reimagine", "reinvent", 
+            "roadmap", "scalability", "synergistic", "thought[- ]?provoking", 
+            "total[- ]?solution", "transparent", "turnkey", "value[- ]?proposition"
+        ];
+
+        function highlightText() {
+            const articleDiv = document.getElementById("articleText");
+            let htmlContent = articleDiv.innerHTML;
+
+            // Highlight blacklist phrases
+            blacklist.forEach(phrase => {
+                const regex = new RegExp(`\\b${phrase}(ing|ed|s|es|)?\\b`, "gi");
+                htmlContent = htmlContent.replace(regex, match => `<span class="highlight-phrase">${match}</span>`);
+            });
+
+            // Check for leading/trailing spaces in links
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = htmlContent;
+            const links = tempDiv.querySelectorAll("a");
+            links.forEach(link => {
+                const anchorText = link.textContent;
+                if (anchorText !== anchorText.trim()) {
+                    link.outerHTML = `<span class="highlight-link-space">${link.outerHTML}</span>`;
+                }
+            });
+
+            // Display and scroll to highlighted output
+            document.getElementById("output").innerHTML = tempDiv.innerHTML;
+            document.getElementById("output").scrollIntoView({ behavior: "smooth" });
+        }
+
+        function clearText() {
+            document.getElementById("articleText").innerHTML = "";
+            document.getElementById("output").innerHTML = "";
+            document.getElementById("urlInput").value = "";
+        }
+
+        async function fetchArticleContent() {
+    const url = document.getElementById("urlInput").value;
+    if (!url) {
+        alert("Please enter a valid URL.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+        const data = await response.json();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(data.contents, "text/html");
+
+        // Extract content from <article class="content-body">
+        const articleContent = doc.querySelector("article.content-body");
+        if (articleContent) {
+            // Remove unwanted elements
+            articleContent.querySelectorAll(".page_header, .article-footer_grid").forEach(el => el.remove());
+            document.getElementById("articleText").innerHTML = articleContent.innerHTML;
+        } else {
+            alert("Unable to find the main article content.");
+        }
+    } catch (error) {
+        console.error("Error fetching article content:", error);
+        alert("Failed to load article content. Please check the URL.");
+    }
+}
+
+    </script>
+</body>
+</html>
